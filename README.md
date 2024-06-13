@@ -25,7 +25,7 @@ This code trains a generative adversarial network to generate patient records. T
 **STEP 2: Fast way to test medGAN with MIMIC-III**  
 This step describes how to train medGAN, with minimum number of steps using MIMIC-III.
 
-0. You will first need to request access for [MIMIC-IV](https://mimic.physionet.org/gettingstarted/access/), a publicly avaiable electronic health records collected from ICU patients. 
+0. You will first need to request access for [MIMIC-IV](https://physionet.org/content/mimiciv/2.2/), a publicly avaiable electronic health records collected from ICU patients. 
 
 1. You can use "process_mimic.py" to process MIMIC-IV dataset and generate a suitable training dataset for medGAN. 
 Place the script to the same location where the MIMIC-IV CSV files are located, and run the script.
