@@ -15,21 +15,32 @@ import _pickle as pickle
 import numpy as np
 from datetime import datetime
 
+
 def convert_to_icd9(dxStr):
     if dxStr.startswith('E'):
-        if len(dxStr) > 4: return dxStr[:4] + '.' + dxStr[4:]
-        else: return dxStr
+        if len(dxStr) > 4:
+            return dxStr[:4] + '.' + dxStr[4:]
+        else:
+            return dxStr
     else:
-        if len(dxStr) > 3: return dxStr[:3] + '.' + dxStr[3:]
-        else: return dxStr
-    
+        if len(dxStr) > 3:
+            return dxStr[:3] + '.' + dxStr[3:]
+        else:
+            return dxStr
+
+
 def convert_to_3digit_icd9(dxStr):
     if dxStr.startswith('E'):
-        if len(dxStr) > 4: return dxStr[:4]
-        else: return dxStr
+        if len(dxStr) > 4:
+            return dxStr[:4]
+        else:
+            return dxStr
     else:
-        if len(dxStr) > 3: return dxStr[:3]
-        else: return dxStr
+        if len(dxStr) > 3:
+            return dxStr[:3]
+        else:
+            return dxStr
+
 
 if __name__ == '__main__':
     admissionFile = sys.argv[1]
@@ -48,12 +59,14 @@ if __name__ == '__main__':
     infd.readline()
     for line in infd:
         tokens = line.strip().split(',')
-        pid = int(tokens[1])
-        admId = int(tokens[2])
-        admTime = datetime.strptime(tokens[3], '%Y-%m-%d %H:%M:%S')
+        pid = int(tokens[0])
+        admId = int(tokens[1])
+        admTime = datetime.strptime(tokens[2], '%Y-%m-%d %H:%M:%S')
         admDateMap[admId] = admTime
-        if pid in pidAdmMap: pidAdmMap[pid].append(admId)
-        else: pidAdmMap[pid] = [admId]
+        if pid in pidAdmMap:
+            pidAdmMap[pid].append(admId)
+        else:
+            pidAdmMap[pid] = [admId]
     infd.close()
 
     print('Building admission-dxList mapping')
@@ -62,20 +75,25 @@ if __name__ == '__main__':
     infd.readline()
     for line in infd:
         tokens = line.strip().split(',')
-        admId = int(tokens[2])
-        #dxStr = 'D_' + convert_to_icd9(tokens[4][1:-1]) ############## Uncomment this line and comment the line below, if you want to use the entire ICD9 digits.
-        dxStr = 'D_' + convert_to_3digit_icd9(tokens[4][1:-1])
-        if admId in admDxMap: admDxMap[admId].append(dxStr)
-        else: admDxMap[admId] = [dxStr]
+        admId = int(tokens[1])  # Adjust column index for hadm_id
+        # Adjust column index for icd_code, conversion logic
+        dxStr = 'D_' + convert_to_3digit_icd9(tokens[3][1:-1])
+        if admId in admDxMap:
+            admDxMap[admId].append(dxStr)
+        else:
+            admDxMap[admId] = [dxStr]
     infd.close()
 
     print('Building pid-sortedVisits mapping')
     pidSeqMap = {}
     for pid, admIdList in pidAdmMap.items():
-        #if len(admIdList) < 2: continue
-        sortedList = sorted([(admDateMap[admId], admDxMap[admId]) for admId in admIdList])
-        pidSeqMap[pid] = sortedList
-    
+        sortedList = []
+        for admId in admIdList:
+            if admId in admDateMap and admId in admDxMap:
+                sortedList.append((admDateMap[admId], admDxMap[admId]))
+        if sortedList:  # Only add to pidSeqMap if sortedList is not empty
+            pidSeqMap[pid] = sorted(sortedList)
+
     print('Building pids, dates, strSeqs')
     pids = []
     dates = []
@@ -89,7 +107,7 @@ if __name__ == '__main__':
             seq.append(visit[1])
         dates.append(date)
         seqs.append(seq)
-    
+
     print('Converting strSeqs to intSeqs, and making types')
     types = {}
     newSeqs = []
